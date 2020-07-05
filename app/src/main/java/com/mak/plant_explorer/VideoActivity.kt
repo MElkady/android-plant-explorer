@@ -97,10 +97,15 @@ class VideoActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             imageAnalyzer = ImageAnalysis.Builder().build().also {
                 it.setAnalyzer(cameraExecutor, PlantImageAnalyzer {
                     runOnUiThread {
-                        txt_labels.text =
-                            if (it.isNotEmpty()) "${it.first().text} (${it.first().confidencePercent}%)" else getString(
-                                R.string.no_results
-                            )
+                        if (it.isNotEmpty()) {
+                            val detection = it.first()
+                            txt_labels.text =
+                                if (detection == PlantDetector.ERROR_LABEL) "${detection.text} (${detection.confidencePercent}%)" else getString(
+                                    R.string.detection_error
+                                )
+                        } else {
+                            txt_labels.text = getString(R.string.no_results)
+                        }
                     }
                 })
             }

@@ -2,5 +2,6 @@
     <string name="app_name">Plant explorer</string>
     <string name="btn_live_classification">Live classification</string>
     <string name="btn_from_gallery">From gallery</string>
+    <string name="detection_error">Error</string>
     <string name="no_results">No matches</string>
 </resources>
