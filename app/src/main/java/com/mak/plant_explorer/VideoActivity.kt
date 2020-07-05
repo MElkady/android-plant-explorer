@@ -100,9 +100,9 @@ class VideoActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                         if (it.isNotEmpty()) {
                             val detection = it.first()
                             txt_labels.text =
-                                if (detection == PlantDetector.ERROR_LABEL) "${detection.text} (${detection.confidencePercent}%)" else getString(
+                                if (detection == PlantDetector.ERROR_LABEL) getString(
                                     R.string.detection_error
-                                )
+                                ) else "${detection.text} (${detection.confidencePercent}%)"
                         } else {
                             txt_labels.text = getString(R.string.no_results)
                         }
