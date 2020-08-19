@@ -7,8 +7,9 @@ import android.util.Log
 import android.widget.Toast
 import com.google.mlkit.vision.common.InputImage
 import kotlinx.android.synthetic.main.activity_gallery.*
+import kotlinx.coroutines.*
 
-class GalleryActivity : AppCompatActivity() {
+class GalleryActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_gallery)
@@ -17,20 +18,25 @@ class GalleryActivity : AppCompatActivity() {
 
         intent.getParcelableExtra<Uri>(EXTRA_IMAGE_URI)?.let {
             image_preview.setImageURI(it)
-            val detector = PlantDetector()
-            detector.processImage(InputImage.fromFilePath(applicationContext, it), { labels ->
-                if (labels.isNotEmpty()) {
-                    val detection = labels.first()
-                    txt_labels.text =
-                        if (detection == PlantDetector.ERROR_LABEL) getString(
-                            R.string.detection_error
-                        ) else "${detection.text} (${detection.confidencePercent}%)"
-                } else {
-                    txt_labels.text = getString(R.string.no_results)
+            launch {
+                val detector = PlantDetector()
+                val inputImage = withContext(Dispatchers.IO) {
+                    InputImage.fromFilePath(applicationContext, it)
                 }
-            }, {
+                detector.processImage(inputImage, { labels ->
+                    if (labels.isNotEmpty()) {
+                        val detection = labels.first()
+                        txt_labels.text =
+                            if (detection == PlantDetector.ERROR_LABEL) getString(
+                                R.string.detection_error
+                            ) else "${detection.text} (${detection.confidencePercent}%)"
+                    } else {
+                        txt_labels.text = getString(R.string.no_results)
+                    }
+                }, {
 
-            })
+                })
+            }
         } ?: run {
             Toast.makeText(applicationContext, "Missing activity parameters", Toast.LENGTH_LONG).show()
             Log.e(TAG, "image URI is not provided")
