@@ -12,7 +12,7 @@ typealias LabelsListener = (labels: List<Label>) -> Unit
 data class Label(val text: String, val confidencePercent: Int)
 
 class PlantDetector(maxLabels: Int = 1) {
-    private val localModel = LocalModel.Builder().setAssetFilePath("aiy_vision_classifier_plants_V1_2.tflite").build()
+    private val localModel = LocalModel.Builder().setAssetFilePath("aiy_vision_classifier_plants_V1_3.tflite").build()
     private val customObjectDetectorOptions = CustomObjectDetectorOptions.Builder(localModel)
         .setDetectorMode(CustomObjectDetectorOptions.STREAM_MODE)
         .enableClassification()
