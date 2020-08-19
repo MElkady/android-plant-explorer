@@ -2,6 +2,7 @@ package com.mak.plant_explorer
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -15,7 +16,10 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.common.InputImage
+import kotlinx.android.synthetic.main.activity_gallery.*
 import kotlinx.android.synthetic.main.activity_video.*
+import kotlinx.android.synthetic.main.activity_video.toolbar
+import kotlinx.android.synthetic.main.activity_video.txt_labels
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
@@ -90,7 +94,7 @@ class VideoActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-        cameraProviderFuture.addListener(Runnable {
+        cameraProviderFuture.addListener({
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
             preview = Preview.Builder().build()
             val imageCapture = ImageCapture.Builder().setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY).build()
@@ -103,6 +107,12 @@ class VideoActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                                 if (detection == PlantDetector.ERROR_LABEL) getString(
                                     R.string.detection_error
                                 ) else "${detection.text} (${detection.confidencePercent}%)"
+
+                            txt_labels.setOnClickListener {
+                                val intent = Intent(Intent.ACTION_VIEW)
+                                intent.data = Uri.parse("https://www.google.com/search?q=${detection.text}")
+                                startActivity(intent)
+                            }
                         } else {
                             txt_labels.text = getString(R.string.no_results)
                         }
@@ -162,7 +172,7 @@ class VideoActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     @SuppressLint("UnsafeExperimentalUsageError")
     private class PlantImageAnalyzer(private val listener: LabelsListener) : ImageAnalysis.Analyzer {
-        private val detector = PlantDetector()
+        private val detector = PlantDetector(mode = Mode.Stream, maxLabels = 5)
 
         override fun analyze(imageProxy: ImageProxy) {
             val mediaImage = imageProxy.image

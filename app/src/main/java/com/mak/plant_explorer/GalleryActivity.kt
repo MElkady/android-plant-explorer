@@ -1,5 +1,6 @@
 package com.mak.plant_explorer
 
+import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -16,20 +17,27 @@ class GalleryActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        intent.getParcelableExtra<Uri>(EXTRA_IMAGE_URI)?.let {
-            image_preview.setImageURI(it)
+        intent.getParcelableExtra<Uri>(EXTRA_IMAGE_URI)?.let { imageUri ->
+            image_preview.setImageURI(imageUri)
             launch {
-                val detector = PlantDetector()
+                val detector = PlantDetector(mode = Mode.SingleImage, detectMultipleObjects = true, maxLabels = 5)
                 val inputImage = withContext(Dispatchers.IO) {
-                    InputImage.fromFilePath(applicationContext, it)
+                    InputImage.fromFilePath(applicationContext, imageUri)
                 }
                 detector.processImage(inputImage, { labels ->
                     if (labels.isNotEmpty()) {
-                        val detection = labels.first()
+                        val sortedLabels = labels.toMutableList();
+                        sortedLabels.sortByDescending { it.confidencePercent }
+                        val detection = sortedLabels.first()
                         txt_labels.text =
                             if (detection == PlantDetector.ERROR_LABEL) getString(
                                 R.string.detection_error
                             ) else "${detection.text} (${detection.confidencePercent}%)"
+                        txt_labels.setOnClickListener {
+                            val intent = Intent(Intent.ACTION_VIEW)
+                            intent.data = Uri.parse("https://www.google.com/search?q=${detection.text}")
+                            startActivity(intent)
+                        }
                     } else {
                         txt_labels.text = getString(R.string.no_results)
                     }
